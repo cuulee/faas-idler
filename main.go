@@ -25,7 +25,7 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "use dry-run for scaling events")
 	flag.Parse()
 
-	restDuration := time.Second * 2
+	reconcileInterval := time.Second * 30
 
 	client := &http.Client{}
 	gatewayURL := os.Getenv("gateway_url")
@@ -61,7 +61,7 @@ inactivity_duration: %s `, dryRun, gatewayURL, inactivityDuration)
 	for {
 
 		reconcile(client, gatewayURL, prometheusHost, prometheusPort, inactivityDuration)
-		time.Sleep(restDuration)
+		time.Sleep(reconcileInterval)
 		fmt.Printf("\n")
 	}
 }
@@ -70,8 +70,8 @@ func buildMetricsMap(client *http.Client, functions []requests.Function, prometh
 	query := metrics.NewPrometheusQuery(prometheusHost, prometheusPort, client)
 	metrics := make(map[string]float64)
 
-	// duration := inactivityDuration.String()
-	duration := "5m"
+	duration := fmt.Sprintf("%dm", int(inactivityDuration.Minutes()))
+	// duration := "5m"
 
 	for _, function := range functions {
 		querySt := url.QueryEscape(`sum(rate(gateway_function_invocation_total{function_name="` + function.Name + `", code=~".*"}[` + duration + `])) by (code, function_name)`)
@@ -181,6 +181,7 @@ func queryFunctions(client *http.Client, gatewayURL string) ([]requests.Function
 func sendScaleEvent(client *http.Client, gatewayURL string, name string, replicas uint64) {
 	if dryRun {
 		fmt.Printf("dry-run: Scaling %s to %d replicas\n", name, replicas)
+		return
 	}
 
 	scaleReq := providerTypes.ScaleServiceRequest{

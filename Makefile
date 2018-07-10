@@ -3,3 +3,5 @@ TAG?=latest-dev
 
 build:
 	docker build -t alexellis/faas-idler:${TAG} .
+push:
+	docker push alexellis/faas-idler:${TAG}
