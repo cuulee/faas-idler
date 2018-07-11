@@ -1,17 +1,20 @@
 # faas-idler
 
-Scale functions to zero replicas after a period of inactivity
+Scale OpenFaaS functions to zero replicas after a period of inactivity
 
-Premise: functions (Deployments) can be scaled to 0/0 replicas from 1/1 or N/N replicas when they are not receiving traffic. Traffic is observed from Prometheus metrics collected in the OpenFaaS API Gateway.
+> Premise: functions (Deployments) can be scaled to 0/0 replicas from 1/1 or N/N replicas when they are not receiving traffic. Traffic is observed from Prometheus metrics collected in the OpenFaaS API Gateway.
 
-Scaling to zero requires an "un-idler" or a blocking HTTP proxy which can reverse the process when incoming requests attempt to access a given function. This is done through the OpenFaaS API Gateway through which every incoming call passes.
+Scaling to zero requires an "un-idler" or a blocking HTTP proxy which can reverse the process when incoming requests attempt to access a given function. This is done through the OpenFaaS API Gateway through which every incoming call passes - see [Add feature: scale from zero to 1 replicas #685](https://github.com/openfaas/faas/pull/685).
 
 faas-idler is implemented as a controller which polls Prometheus metrics on a regular basis and tries to reconcile a desired condition - i.e. zero replicas -> scale down API call.
 
 ## Building
 
+The build requires Docker and builds a local Docker image.
+
 ```
 TAG=0.1.0 make build
+TAG=0.1.0 make push
 ```
 
 ## Usage
@@ -39,6 +42,9 @@ How it works:
 
 ## Logs
 
+You can view the logs to show reconciliation in action.
+
 ```
 kubectl logs -n openfaas -f deploy/faas-idler
 ```
+
