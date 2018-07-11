@@ -1,6 +1,12 @@
 # faas-idler
 
-Idles functions after a period of inactivity
+Scale functions to zero replicas after a period of inactivity
+
+Premise: functions (Deployments) can be scaled to 0/0 replicas from 1/1 or N/N replicas when they are not receiving traffic. Traffic is observed from Prometheus metrics collected in the OpenFaaS API Gateway.
+
+Scaling to zero requires an "un-idler" or a blocking HTTP proxy which can reverse the process when incoming requests attempt to access a given function. This is done through the OpenFaaS API Gateway through which every incoming call passes.
+
+faas-idler is implemented as a controller which polls Prometheus metrics on a regular basis and tries to reconcile a desired condition - i.e. zero replicas -> scale down API call.
 
 ## Building
 
